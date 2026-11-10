@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "preview:static": "node scripts/preview.cjs dist 4174",
-    "test:browser": "node scripts/verify.cjs"
+    "test:browser": "node scripts/verify.cjs",
+    "test:runner": "node scripts/verify-runner.cjs"
   },
   "dependencies": {
     "react": "^19.2.0",

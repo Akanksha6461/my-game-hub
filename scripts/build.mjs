@@ -3,6 +3,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const games = [
+  ['metro-rush', 'Metro Rush', 'Run through a sunset city in this free three-lane runner. Dodge trains, jump barriers, slide under signs and collect coins with swipe or keyboard controls.'],
   ['snake', 'Retro Snake', 'Eat apples, grow your snake and avoid walls. Play with touch buttons or arrow keys.'],
   ['math-master', 'Math Master', 'Solve fast arithmetic puzzles in a timed maths challenge.'],
   ['trex-run', 'T-Rex Run', 'The classic T-Rex running game. Tap to jump over cacti.'],
@@ -22,9 +23,11 @@ if (domain) {
   origin = url.origin;
 }
 const escape = value => value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;');
-const pages = [['', 'Abhinav Akanksha Games', 'Play nine free browser games on your phone or computer.'], ...games];
+const pages = [['', 'Abhinav Akanksha Games', 'Play ten free browser games on your phone or computer.'], ...games];
 await mkdir(path.join(root, 'dist'), { recursive: true });
 await copyFile(path.join(root, 'favicon.svg'), path.join(root, 'dist/favicon.svg'));
+await mkdir(path.join(root, 'dist/metro-rush'), { recursive: true });
+await copyFile(path.join(root, 'metro-rush/game.js'), path.join(root, 'dist/metro-rush/game.js'));
 for (const [slug, name, description] of pages) {
   const relative = slug ? `${slug}/index.html` : 'index.html';
   let html = await readFile(path.join(root, slug ? relative : 'hub.html'), 'utf8');

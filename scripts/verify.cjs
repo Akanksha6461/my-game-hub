@@ -9,6 +9,7 @@ const base = (process.env.BASE_URL || "http://127.0.0.1:4174").replace(/\/$/, ""
   page.on("pageerror", (e) => errors.push(e.message));
   const slugs = [
     "",
+    "metro-rush",
     "farmland",
     "basketball",
     "bubble-shot",
@@ -69,7 +70,7 @@ const base = (process.env.BASE_URL || "http://127.0.0.1:4174").replace(/\/$/, ""
   await page.locator("#search").fill("doesnotexist");
   assert(await page.locator("#empty").isVisible());
   await page.locator("#search").fill("");
-  assert.equal(await page.locator(".card:visible").count(), 9);
+  assert.equal(await page.locator(".card:visible").count(), 10);
   await page.goto(base + "/farmland/");
   await page.locator("#plot0").click();
   assert(await page.evaluate(() => farm.plots[0].crop !== null));
@@ -154,7 +155,7 @@ const base = (process.env.BASE_URL || "http://127.0.0.1:4174").replace(/\/$/, ""
   );
   assert.deepEqual(errors, []);
   console.log(
-    "PASS: 50 responsive page checks; search; farm/save/water/harvest; dino jump/pause; basketball shoot/pause; bubbles swap/settle; flight/fire/pause; garden tools; snake start/turn/pause/restart; math answer/score/pause; no browser errors.",
+    "PASS: 55 responsive page checks; search; farm/save/water/harvest; dino jump/pause; basketball shoot/pause; bubbles swap/settle; flight/fire/pause; garden tools; snake start/turn/pause/restart; math answer/score/pause; no browser errors.",
   );
   await browser.close();
 })().catch((e) => {

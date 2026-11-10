@@ -56,7 +56,7 @@ export function DinoGame({ onBack }: { onBack: () => void }) {
       </button>
 
       <style>{`
-        .game-box { width: 800px; height: 200px; background: white; border-bottom: 2px solid #555; position: relative; overflow: hidden; }
+        .game-box { width: min(800px, calc(100vw - 28px)); height: 200px; background: white; border-bottom: 2px solid #555; position: relative; overflow: hidden; }
         .dino-container { width: 50px; height: 50px; position: absolute; bottom: 0; left: 50px; }
         .dino-img { width: 100%; height: 100%; object-fit: contain; }
         .cactus-container { width: 40px; height: 50px; position: absolute; bottom: 0; }

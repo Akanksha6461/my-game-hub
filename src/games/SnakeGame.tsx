@@ -23,6 +23,7 @@ export function SnakeGame({ onBack }: { onBack: () => void }) {
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key.startsWith('Arrow')) e.preventDefault();
       switch (e.key) {
         case 'ArrowUp': if (direction.y === 0) setDirection({ x: 0, y: -1 }); break;
         case 'ArrowDown': if (direction.y === 0) setDirection({ x: 0, y: 1 }); break;
@@ -89,7 +90,7 @@ export function SnakeGame({ onBack }: { onBack: () => void }) {
 
           return (
             <div key={i} style={{
-              width: '20px', height: '20px',
+              width: '100%', aspectRatio: '1',
               backgroundColor: isSnake ? '#4CAF50' : isFood ? '#ff4d4d' : '#fff',
               border: '0.5px solid #eee',
               borderRadius: isFood ? '50%' : '2px'
@@ -101,12 +102,12 @@ export function SnakeGame({ onBack }: { onBack: () => void }) {
       {isGameOver && (
         <div style={overlayStyle}>
           <h1>GAME OVER!</h1>
-          <button onClick={() => { setSnake(INITIAL_SNAKE); setScore(0); setIsGameOver(false); }} style={btnStyle}>
+          <button onClick={() => { setSnake(INITIAL_SNAKE); setDirection(INITIAL_DIRECTION); setScore(0); setIsGameOver(false); }} style={btnStyle}>
             Try Again
           </button>
         </div>
       )}
-      <p>Use Arrow Keys to Move</p>
+      <p>Use arrow keys or the buttons below.</p><div aria-label="Snake direction controls" style={{ display:'grid',gridTemplateColumns:'repeat(3,55px)',gap:6,justifyContent:'center',margin:'12px auto' }}>{[['',''],['↑','ArrowUp'],['',''],['←','ArrowLeft'],['↓','ArrowDown'],['→','ArrowRight']].map(([label,key],i)=>key?<button key={i} aria-label={key.replace('Arrow','Move ')} onClick={()=>window.dispatchEvent(new KeyboardEvent('keydown',{key}))} style={{padding:12,borderRadius:10,border:'1px solid #bdcbb1',background:'#e6eddd',fontSize:20,touchAction:'manipulation'}}>{label}</button>:<span key={i}/>)}</div>
     </div>
   );
 }
@@ -114,13 +115,14 @@ export function SnakeGame({ onBack }: { onBack: () => void }) {
 // Simple Inline Styles
 const gridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: `repeat(${GRID_SIZE}, 20px)`,
+  gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
+  width: "min(400px, calc(100vw - 36px))",
   border: '5px solid #333',
   backgroundColor: '#fff',
   margin: '0 auto'
 };
 
-const btnStyle = { padding: '10px 20px', cursor: 'pointer', background: '#333', color: '#white', border: 'none', borderRadius: '5px', marginBottom: '10px' };
+const btnStyle = { padding: '10px 20px', cursor: 'pointer', background: '#333', color: 'white', border: 'none', borderRadius: '5px', marginBottom: '10px' };
 
 const overlayStyle: React.CSSProperties = {
   position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',

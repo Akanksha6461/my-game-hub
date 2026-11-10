@@ -94,10 +94,10 @@ const containerStyle: React.CSSProperties = {
 
 const cardStyle: React.CSSProperties = {
   background: 'white',
-  padding: '40px',
+  padding: '24px',
   borderRadius: '20px',
   boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-  width: '400px',
+  width: 'min(400px, calc(100vw - 36px))',
   margin: '0 auto'
 };
 

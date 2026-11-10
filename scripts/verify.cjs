@@ -1,6 +1,7 @@
 const { chromium } = require("playwright");
 const assert = require("assert");
 const fs = require("fs");
+const base = (process.env.BASE_URL || "http://127.0.0.1:4174").replace(/\/$/, "");
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const errors = [];
@@ -21,8 +22,20 @@ const fs = require("fs");
   for (const width of [320, 375, 390, 768, 1440]) {
     await page.setViewportSize({ width, height: width === 1440 ? 900 : 844 });
     for (const slug of slugs) {
-      await page.goto("http://127.0.0.1:4174/" + (slug ? slug + "/" : ""));
+      await page.goto(base + "/" + (slug ? slug + "/" : ""));
       await page.waitForTimeout(80);
+      assert.equal(await page.locator('link[rel="canonical"]').count(), 1);
+      assert.equal(await page.locator('meta[name="description"]').count(), 1);
+      for (const button of await page.locator('.overlay button').all()) {
+        if (await button.isVisible()) {
+          const visible = await button.evaluate(el => {
+            const a = el.getBoundingClientRect();
+            const b = el.closest('.overlay').getBoundingClientRect();
+            return a.top >= b.top - 1 && a.bottom <= b.bottom + 1;
+          });
+          assert(visible, `${slug}: start button clipped at ${width}`);
+        }
+      }
       const layout = await page.evaluate(() => ({
         scroll: document.documentElement.scrollWidth,
         width: innerWidth,
@@ -48,7 +61,7 @@ const fs = require("fs");
     }
   }
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("http://127.0.0.1:4174/");
+  await page.goto(base + "/");
   await page.getByRole("button", { name: "Sports", exact: true }).click();
   await page.locator("#search").fill("dino");
   assert.equal(await page.locator(".card:visible").count(), 1);
@@ -57,7 +70,7 @@ const fs = require("fs");
   assert(await page.locator("#empty").isVisible());
   await page.locator("#search").fill("");
   assert.equal(await page.locator(".card:visible").count(), 9);
-  await page.goto("http://127.0.0.1:4174/farmland/");
+  await page.goto(base + "/farmland/");
   await page.locator("#plot0").click();
   assert(await page.evaluate(() => farm.plots[0].crop !== null));
   await page.locator('[data-tool="water"]').click();
@@ -68,7 +81,7 @@ const fs = require("fs");
   assert.equal(await page.evaluate(() => farm.harvests), 1);
   await page.reload();
   assert.equal(await page.evaluate(() => farm.harvests), 1);
-  await page.goto("http://127.0.0.1:4174/dino-dash/");
+  await page.goto(base + "/dino-dash/");
   await page.locator("#start").click();
   await page.locator("#jump-control").click();
   assert(await page.evaluate(() => dino.vy < 0));
@@ -76,7 +89,7 @@ const fs = require("fs");
   assert.equal(await page.evaluate(() => state), "paused");
   await page.locator("#start").click();
   assert.equal(await page.evaluate(() => state), "running");
-  await page.goto("http://127.0.0.1:4174/basketball/");
+  await page.goto(base + "/basketball/");
   await page.locator("#play").click();
   await page.locator("#shoot-control").click();
   assert.equal(await page.evaluate(() => attempts), 1);
@@ -84,14 +97,14 @@ const fs = require("fs");
   assert.equal(await page.evaluate(() => state), "paused");
   await page.locator("#play").click();
   assert.equal(await page.evaluate(() => state), "playing");
-  await page.goto("http://127.0.0.1:4174/bubble-shot/");
+  await page.goto(base + "/bubble-shot/");
   const color = await page.evaluate(() => current);
   await page.locator("#swap-control").click();
   assert.equal(await page.evaluate(() => next), color);
   await page.locator("#fire-control").click();
   await page.waitForTimeout(1200);
   assert(await page.evaluate(() => !shot));
-  await page.goto("http://127.0.0.1:4174/iron-man/");
+  await page.goto(base + "/iron-man/");
   await page.locator("#start").click();
   await page
     .locator("canvas")
@@ -100,7 +113,7 @@ const fs = require("fs");
   assert(await page.evaluate(() => shots.length > 0));
   await page.locator("#pause").click();
   assert.equal(await page.evaluate(() => state), "paused");
-  await page.goto("http://127.0.0.1:4174/magic-garden/");
+  await page.goto(base + "/magic-garden/");
   const count = await page.evaluate(() => flowers.length);
   await page.locator("canvas").click({ position: { x: 160, y: 300 } });
   assert.equal(await page.evaluate(() => flowers.length), count + 1);
@@ -108,7 +121,7 @@ const fs = require("fs");
   const fliesBefore = await page.evaluate(() => flies.length);
   await page.locator("canvas").click({ position: { x: 180, y: 320 } });
   assert.equal(await page.evaluate(() => flies.length), fliesBefore + 1);
-  await page.goto("http://127.0.0.1:4174/snake/");
+  await page.goto(base + "/snake/");
   let frame = page.frameLocator("iframe");
   await frame.getByRole("button", { name: "Start game", exact: true }).click();
   await frame.getByRole("button", { name: "Move Right", exact: true }).click();
@@ -120,7 +133,7 @@ const fs = require("fs");
   );
   await frame.getByRole("button", { name: "Resume", exact: true }).click();
   await frame.getByRole("button", { name: "New game", exact: true }).click();
-  await page.goto("http://127.0.0.1:4174/math-master/");
+  await page.goto(base + "/math-master/");
   frame = page.frameLocator("iframe");
   await frame.getByRole("button", { name: "Start challenge" }).click();
   const text = await frame.locator(".equation").textContent();

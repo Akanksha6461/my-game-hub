@@ -1,1 +1,224 @@
- 
+* {
+  box-sizing: border-box;
+}
+html,
+body,
+#root {
+  margin: 0;
+  min-width: 0;
+  width: 100%;
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+body {
+  background: #f7f8fc;
+  color: #26324a;
+}
+button,
+input {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+  min-height: 44px;
+  border: 0;
+  border-radius: 12px;
+  padding: 12px 18px;
+  background: #6155d9;
+  color: #fff;
+  font-weight: 700;
+  touch-action: manipulation;
+}
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid #a493ff;
+  outline-offset: 3px;
+}
+.classic-shell {
+  width: min(100%, 520px);
+  padding: 16px;
+  margin: auto;
+}
+.back {
+  background: #eeedfa;
+  color: #51489c;
+  font-size: 12px;
+}
+.classic-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 22px 0;
+}
+.classic-heading h1 {
+  font-size: clamp(25px, 7vw, 36px);
+  letter-spacing: -1px;
+  margin: 5px 0;
+}
+.classic-heading strong {
+  white-space: nowrap;
+  font-size: 14px;
+}
+.eyebrow {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  color: #74788d;
+}
+.snake-board {
+  position: relative;
+  border: 8px solid #263a36;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #e7eee2;
+}
+.snake-grid {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  aspect-ratio: 1;
+  gap: 1px;
+  padding: 6px;
+}
+.snake-grid i {
+  background: #dce6d5;
+  border-radius: 2px;
+}
+.snake-grid .segment {
+  background: #467457;
+}
+.snake-grid .food {
+  background: #df795f;
+  border-radius: 50%;
+}
+.classic-overlay {
+  position: absolute;
+  inset: 0;
+  background: #f1f5eced;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  padding: 20px;
+  text-align: center;
+}
+.classic-overlay h2 {
+  font-size: 26px;
+  letter-spacing: -0.8px;
+  margin: 0;
+}
+.classic-overlay p,
+.math-card p {
+  color: #69748a;
+  line-height: 1.7;
+}
+.classic-actions {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0;
+}
+.classic-actions button {
+  flex: 1;
+  font-size: 12px;
+}
+.direction-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 56px);
+  gap: 6px;
+  justify-content: center;
+}
+.direction-pad button:first-child {
+  grid-column: 2;
+}
+.direction-pad button:nth-child(2) {
+  grid-column: 1;
+}
+.direction-pad button {
+  font-size: 22px;
+  background: #e5e2fb;
+  color: #51479e;
+}
+.instructions {
+  font-size: 12px;
+  color: #69748a;
+  line-height: 1.7;
+  text-align: center;
+}
+.math-card {
+  padding: 24px;
+  background: white;
+  border: 1px solid #e0e5ef;
+  border-radius: 22px;
+  text-align: center;
+  box-shadow: 0 10px 30px #26324a08;
+}
+.math-card h2 {
+  font-size: 28px;
+  letter-spacing: -1px;
+}
+.timer {
+  display: inline-block;
+  background: #eeedff;
+  padding: 8px 16px;
+  border-radius: 30px;
+  color: #6155d9;
+  font-weight: 700;
+}
+.math-card .equation {
+  font-size: clamp(30px, 9vw, 48px);
+  font-weight: 800;
+  color: #26324a;
+  margin: 22px 0;
+  white-space: nowrap;
+}
+.math-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.math-card label {
+  font-size: 12px;
+  color: #69748a;
+  text-align: left;
+}
+.math-card input {
+  width: 100%;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #dbe0eb;
+  border-radius: 12px;
+  text-align: center;
+  font-size: 20px;
+}
+.feedback {
+  font-size: 12px;
+  min-height: 40px;
+}
+.secondary {
+  background: #eeedff;
+  color: #6155d9;
+  width: 100%;
+}
+@media (max-width: 350px) {
+  .classic-shell {
+    padding: 8px;
+  }
+  .math-card {
+    padding: 16px;
+  }
+  .classic-heading {
+    gap: 6px;
+  }
+  .classic-heading strong {
+    font-size: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+[data-embedded="true"] .back { display: none; }

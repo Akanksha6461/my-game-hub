@@ -1,130 +1,204 @@
-// src/games/SnakeGame.tsx
-import { useState, useEffect, useCallback } from 'react';
-
-const GRID_SIZE = 20;
-const INITIAL_SNAKE = [{ x: 10, y: 10 }];
-const INITIAL_DIRECTION = { x: 0, y: -1 }; // Upward
-
-export function SnakeGame({ onBack }: { onBack: () => void }) {
-  const [snake, setSnake] = useState(INITIAL_SNAKE);
-  const [food, setFood] = useState({ x: 5, y: 5 });
-  const [direction, setDirection] = useState(INITIAL_DIRECTION);
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [score, setScore] = useState(0);
-
-  // Khana random jagah paida karne ke liye
-  const generateFood = useCallback(() => {
+import { useEffect, useReducer, useRef } from "react";
+type Point = { x: number; y: number };
+type State = {
+  snake: Point[];
+  food: Point | null;
+  dir: Point;
+  next: Point;
+  score: number;
+  status: "ready" | "playing" | "paused" | "over" | "won";
+};
+const N = 20;
+function foodFor(snake: Point[]) {
+  const free: Point[] = [];
+  for (let y = 0; y < N; y++)
+    for (let x = 0; x < N; x++)
+      if (!snake.some((p) => p.x === x && p.y === y)) free.push({ x, y });
+  return free[Math.floor(Math.random() * free.length)] ?? null;
+}
+function fresh(): State {
+  const snake = [
+    { x: 10, y: 10 },
+    { x: 10, y: 11 },
+    { x: 10, y: 12 },
+  ];
+  return {
+    snake,
+    food: foodFor(snake),
+    dir: { x: 0, y: -1 },
+    next: { x: 0, y: -1 },
+    score: 0,
+    status: "ready",
+  };
+}
+type Action =
+  | { type: "tick" }
+  | { type: "turn"; dir: Point }
+  | { type: "start" }
+  | { type: "pause" };
+function reducer(s: State, a: Action): State {
+  if (a.type === "start") return { ...fresh(), status: "playing" };
+  if (a.type === "pause")
     return {
-      x: Math.floor(Math.random() * GRID_SIZE),
-      y: Math.floor(Math.random() * GRID_SIZE),
+      ...s,
+      status:
+        s.status === "playing"
+          ? "paused"
+          : s.status === "paused"
+            ? "playing"
+            : s.status,
     };
+  if (a.type === "turn") {
+    if (
+      s.status !== "playing" ||
+      (a.dir.x === -s.dir.x && a.dir.y === -s.dir.y)
+    )
+      return s;
+    return { ...s, next: a.dir };
+  }
+  if (s.status !== "playing") return s;
+  const head = { x: s.snake[0].x + s.next.x, y: s.snake[0].y + s.next.y };
+  const eat = head.x === s.food?.x && head.y === s.food?.y;
+  const body = eat ? s.snake : s.snake.slice(0, -1);
+  if (
+    head.x < 0 ||
+    head.x >= N ||
+    head.y < 0 ||
+    head.y >= N ||
+    body.some((p) => p.x === head.x && p.y === head.y)
+  )
+    return { ...s, status: "over" };
+  const snake = [head, ...s.snake];
+  if (!eat) snake.pop();
+  const food = eat ? foodFor(snake) : s.food;
+  return {
+    ...s,
+    snake,
+    food,
+    dir: s.next,
+    score: s.score + (eat ? 10 : 0),
+    status: food ? "playing" : "won",
+  };
+}
+export function SnakeGame({ onBack }: { onBack: () => void }) {
+  const [s, dispatch] = useReducer(reducer, undefined, fresh);
+  const board = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const id = setInterval(() => dispatch({ type: "tick" }), 150);
+    return () => clearInterval(id);
   }, []);
-
-  // Keyboard controls
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.startsWith('Arrow')) e.preventDefault();
-      switch (e.key) {
-        case 'ArrowUp': if (direction.y === 0) setDirection({ x: 0, y: -1 }); break;
-        case 'ArrowDown': if (direction.y === 0) setDirection({ x: 0, y: 1 }); break;
-        case 'ArrowLeft': if (direction.x === 0) setDirection({ x: -1, y: 0 }); break;
-        case 'ArrowRight': if (direction.x === 0) setDirection({ x: 1, y: 0 }); break;
-      }
+    const directions: Record<string, Point> = {
+      ArrowUp: { x: 0, y: -1 },
+      ArrowDown: { x: 0, y: 1 },
+      ArrowLeft: { x: -1, y: 0 },
+      ArrowRight: { x: 1, y: 0 },
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [direction]);
-
-  // Game Loop
-  useEffect(() => {
-    if (isGameOver) return;
-
-    const moveSnake = setInterval(() => {
-      setSnake((prevSnake) => {
-        const newHead = {
-          x: prevSnake[0].x + direction.x,
-          y: prevSnake[0].y + direction.y,
-        };
-
-        // 1. Deewar se takrana check karo
-        if (newHead.x < 0 || newHead.x >= GRID_SIZE || newHead.y < 0 || newHead.y >= GRID_SIZE) {
-          setIsGameOver(true);
-          return prevSnake;
-        }
-
-        // 2. Khud se takrana check karo
-        if (prevSnake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
-          setIsGameOver(true);
-          return prevSnake;
-        }
-
-        const newSnake = [newHead, ...prevSnake];
-
-        // 3. Khana khana check karo
-        if (newHead.x === food.x && newHead.y === food.y) {
-          setScore(s => s + 10);
-          setFood(generateFood());
-        } else {
-          newSnake.pop(); // Agar khana nahi khaya toh peeche se ek hissa hata do
-        }
-
-        return newSnake;
-      });
-    }, 150); // Speed: 150ms
-
-    return () => clearInterval(moveSnake);
-  }, [direction, food, isGameOver, generateFood]);
-
+    const key = (e: KeyboardEvent) => {
+      if (directions[e.key]) {
+        e.preventDefault();
+        dispatch({ type: "turn", dir: directions[e.key] });
+      }
+      if (e.code === "KeyP") dispatch({ type: "pause" });
+    };
+    const hide = () => {
+      if (document.hidden && s.status === "playing")
+        dispatch({ type: "pause" });
+    };
+    window.addEventListener("keydown", key);
+    document.addEventListener("visibilitychange", hide);
+    return () => {
+      window.removeEventListener("keydown", key);
+      document.removeEventListener("visibilitychange", hide);
+    };
+  }, [s.status]);
   return (
-    <div style={{ textAlign: 'center', color: '#333' }}>
-      <button onClick={onBack} style={btnStyle}>← Back to Hub</button>
-      <h2>Score: {score}</h2>
-      
-      <div style={gridStyle}>
-        {/* Snake aur Food render karna */}
-        {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => {
-          const x = i % GRID_SIZE;
-          const y = Math.floor(i / GRID_SIZE);
-          const isSnake = snake.some(s => s.x === x && s.y === y);
-          const isFood = food.x === x && food.y === y;
-
-          return (
-            <div key={i} style={{
-              width: '100%', aspectRatio: '1',
-              backgroundColor: isSnake ? '#4CAF50' : isFood ? '#ff4d4d' : '#fff',
-              border: '0.5px solid #eee',
-              borderRadius: isFood ? '50%' : '2px'
-            }} />
-          );
-        })}
-      </div>
-
-      {isGameOver && (
-        <div style={overlayStyle}>
-          <h1>GAME OVER!</h1>
-          <button onClick={() => { setSnake(INITIAL_SNAKE); setDirection(INITIAL_DIRECTION); setScore(0); setIsGameOver(false); }} style={btnStyle}>
-            Try Again
-          </button>
+    <main className="classic-shell">
+      <button className="back" onClick={onBack}>
+        ← All games
+      </button>
+      <div className="classic-heading">
+        <div>
+          <p className="eyebrow">THE ORIGINAL ARCADE BREAK</p>
+          <h1>Retro Snake</h1>
         </div>
-      )}
-      <p>Use arrow keys or the buttons below.</p><div aria-label="Snake direction controls" style={{ display:'grid',gridTemplateColumns:'repeat(3,55px)',gap:6,justifyContent:'center',margin:'12px auto' }}>{[['',''],['↑','ArrowUp'],['',''],['←','ArrowLeft'],['↓','ArrowDown'],['→','ArrowRight']].map(([label,key],i)=>key?<button key={i} aria-label={key.replace('Arrow','Move ')} onClick={()=>window.dispatchEvent(new KeyboardEvent('keydown',{key}))} style={{padding:12,borderRadius:10,border:'1px solid #bdcbb1',background:'#e6eddd',fontSize:20,touchAction:'manipulation'}}>{label}</button>:<span key={i}/>)}</div>
-    </div>
+        <strong aria-live="polite">{s.score} points</strong>
+      </div>
+      <div
+        className="snake-board"
+        ref={board}
+        role="img"
+        aria-label={`Snake board. Score ${s.score}. ${s.status}`}
+      >
+        <div className="snake-grid">
+          {Array.from({ length: N * N }, (_, i) => {
+            const x = i % N,
+              y = Math.floor(i / N);
+            return (
+              <i
+                key={i}
+                className={
+                  s.snake.some((p) => p.x === x && p.y === y)
+                    ? "segment"
+                    : s.food?.x === x && s.food?.y === y
+                      ? "food"
+                      : ""
+                }
+              />
+            );
+          })}
+        </div>
+        {s.status !== "playing" && (
+          <div className="classic-overlay">
+            <h2>
+              {s.status === "ready"
+                ? "Ready to roll?"
+                : s.status === "paused"
+                  ? "Take a breather."
+                  : s.status === "won"
+                    ? "You filled the board!"
+                    : "One more round?"}
+            </h2>
+            <p>
+              {s.status === "ready"
+                ? "Collect apples. Avoid the walls and your tail."
+                : `Your score: ${s.score}`}
+            </p>
+            <button
+              onClick={() =>
+                dispatch({ type: s.status === "paused" ? "pause" : "start" })
+              }
+            >
+              {s.status === "paused" ? "Resume" : "Start game"}
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="classic-actions">
+        <button onClick={() => dispatch({ type: "pause" })}>
+          Pause / Resume
+        </button>
+        <button onClick={() => dispatch({ type: "start" })}>New game</button>
+      </div>
+      <div className="direction-pad" aria-label="Snake controls">
+        {[
+          { label: "↑", name: "Up", x: 0, y: -1 },
+          { label: "←", name: "Left", x: -1, y: 0 },
+          { label: "↓", name: "Down", x: 0, y: 1 },
+          { label: "→", name: "Right", x: 1, y: 0 },
+        ].map((d) => (
+          <button
+            key={d.name}
+            aria-label={`Move ${d.name}`}
+            onClick={() => dispatch({ type: "turn", dir: { x: d.x, y: d.y } })}
+          >
+            {d.label}
+          </button>
+        ))}
+      </div>
+      <p className="instructions">
+        Use the arrow buttons or your keyboard. P pauses the game.
+      </p>
+    </main>
   );
 }
-
-// Simple Inline Styles
-const gridStyle: React.CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`,
-  width: "min(400px, calc(100vw - 36px))",
-  border: '5px solid #333',
-  backgroundColor: '#fff',
-  margin: '0 auto'
-};
-
-const btnStyle = { padding: '10px 20px', cursor: 'pointer', background: '#333', color: 'white', border: 'none', borderRadius: '5px', marginBottom: '10px' };
-
-const overlayStyle: React.CSSProperties = {
-  position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-  backgroundColor: 'rgba(255,255,255,0.9)', padding: '20px', borderRadius: '10px', boxShadow: '0 0 20px rgba(0,0,0,0.2)'
-};

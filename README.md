@@ -13,3 +13,9 @@ The build generates each game's title, description, canonical URL, structured da
 After deployment, verify the production property in Google Search Console, submit `https://my-game-hub-brown.vercel.app/sitemap.xml`, and request homepage indexing. Google controls indexing, ranking and search appearance; first place and an immediate listing are not guaranteed.
 
 Progress saves are local to each browser and website origin. The Iron Man game is fan-made.
+
+## Browser verification
+
+Run `npm run build`, then `npm run preview:static` in one terminal. In another, run `npx playwright install chromium` once and `npm run test:browser`. This checks all ten pages at 320, 375, 390, 768 and 1440 pixels, verifies gameplay controls and farm saves, and writes screenshots to ignored `artifacts/`.
+
+The updated mobile controls include basketball aim/power/shoot, bubble aiming/swap/shoot, dinosaur jump/pause, and Snake direction/pause/restart. Math Master accepts a full answer on submit and pauses when hidden.

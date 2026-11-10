@@ -18,6 +18,7 @@ let origin;
 if (domain) {
   const url = new URL(domain.startsWith('http') ? domain : `https://${domain}`);
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) throw new Error('SITE_URL must be a public HTTP(S) URL.');
+  if(url.pathname!=='/'||url.search||url.hash)throw new Error('SITE_URL must be an origin.');
   origin = url.origin;
 }
 const escape = value => value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;');
@@ -29,7 +30,7 @@ for (const [slug, name, description] of pages) {
   let html = await readFile(path.join(root, slug ? relative : 'hub.html'), 'utf8');
   if (slug) {
     html = html.replace(/<title>.*?<\/title>/s, `<title>${escape(name)} | Abhinav Akanksha Games</title>`);
-    html = html.replace('</head>', `<meta name="description" content="${escape(description)}"><meta name="robots" content="index,follow"><link rel="icon" href="../favicon.svg" type="image/svg+xml"></head>`);
+    html = html.replace('</head>', `<meta property="og:type" content="website"><meta property="og:site_name" content="Abhinav Akanksha Games"><meta property="og:title" content="${escape(name)}"><meta property="og:description" content="${escape(description)}"><meta name="twitter:card" content="summary"><meta name="description" content="${escape(description)}"><meta name="robots" content="index,follow"><link rel="icon" href="../favicon.svg" type="image/svg+xml"></head>`);
   }
   if (origin) {
     const url = `${origin}/${slug ? slug + '/' : ''}`;
